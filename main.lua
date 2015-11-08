@@ -10,12 +10,14 @@ require("customValues")
 physics.start()
 physics.setGravity( 0, 30 )
 
-
+local score = 0 
+local scoreText
 local pipesTop = {}
 local pipesBottom = {}
 gameOverBool = false
 local tapToPlay
 local ground
+local addScoreBool = false
 local scrollSpeed = scrollSpeed_int
 local distanceBetweenPipes = distanceBetweenPipes_x
 local player
@@ -28,11 +30,25 @@ function init()
 	player.x = player_x
 	player.y = player_y
 	player.name = "player"
+
+
+	local options = 
+	{
+		text = score,
+		x = _W,
+		y = 60,
+		width = _W,
+		font = native.systemFontBold,
+		fontSize = 40
+	}
+
+	scoreText = display.newText(options)
 	
 
 	background =display.newImageRect("images/bg.png",_W,_H)
 	background.x = background_x
 	background.y = background_y
+	
 
 	ground1 = display.newImageRect("images/groundFB.png", _W, 50)
 	ground1.anchorX = ground_anchor_x
@@ -59,7 +75,7 @@ function init()
 	ground3.name = "ground"
 
 
-	tapToPlay = display.newImageRect("images/tapToPlayFB.png", _W, _H)
+	tapToPlay = display.newImageRect("images/tapToPlayFB.png", _W + 30, _H )
 	tapToPlay.x = tapToPlay_x
 	tapToPlay.y = tapToPlay_y
 	tapToPlay.alpha = 0.7
@@ -74,7 +90,7 @@ function init()
 	--/*************PIPES****************//
 	for i=1,3 do
 		pipeGap = math.random(firstIntervalPipeGap,secondIntervalPipeGap)
-		pipesTop[i] = display.newImageRect("images/pipe.png", 30, math.random(20,_H-pipeGap-20-ground1.height))
+		pipesTop[i] = display.newImageRect("images/pipe.png", 60, math.random(20,_H-pipeGap-20-ground1.height))
 		pipesTop[i].anchorY = pipesTop_anchor_y
 		pipesTop[i].x = i * distanceBetweenPipes
 		pipesTop[i].y = pipesTop_y
@@ -82,7 +98,7 @@ function init()
 		physics.addBody(pipesTop[i], "static")
 		pipesTop[i].name = "pipe"
 
-		pipesBottom[i] = display.newImageRect("images/pipe.png", 30, _H - pipeGap - pipesTop[i].height - ground1.height)
+		pipesBottom[i] = display.newImageRect("images/pipe.png", 60, _H - pipeGap - pipesTop[i].height - ground1.height)
 		pipesBottom[i].anchorY = pipesBottom_anchor_y
 		pipesBottom[i].x = i * distanceBetweenPipes
 		pipesBottom[i].y = pipesBottom_y
@@ -124,6 +140,15 @@ function update(e)
 			physics.removeBody(pipesBottom[i])
 			physics.addBody(pipesBottom[i], "static")
 		end
+		
+		if (pipesTop[i].x + 30 < player.x-20) then
+			
+			score = score + 1
+			score = math.ceil(score)
+			scoreText.text = math.ceil(score/13)
+		end
+
+
 	end
 
 	ground1.x = ground1.x - scrollSpeed
@@ -145,14 +170,15 @@ end
 function gameOver()
 	if(gameOverBool == true)then
 		gameOverBool = false
-		timer.performWithDelay(100, function()
+		score = 0
+		timer.performWithDelay(1, function()
 			updateEventListeners("remove")
 			physics.removeBody(player)
 			
 		end)
 
-		local gameOverBg = display.newText("Game Over!", _W/2, _H/2,native.systemFont, 24)
-		local restartText = display.newText("Restart", _W/2, _H/2 + 100, native.systemFont, 24)
+		local gameOverBg = display.newText("Game Over!", _W/2, _H/2 - 50,native.systemFontBold, 24)
+		local restartText = display.newText("Restart", _W/2, _H/2 + 25, native.systemFontBold, 24)
 		group:insert(gameOverBg)
 		group:insert(restartText)
 		restartText:addEventListener('tap', function ()
@@ -176,6 +202,7 @@ end
 
 function playerJump(e)
 	player:setLinearVelocity(0,-300)
+
 end
 
 function updateEventListeners(action)
